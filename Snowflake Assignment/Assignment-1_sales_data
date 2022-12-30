@@ -1,1 +1,116 @@
-This asignment is based on sales data.
+​use database FSDA_2;
+
+--1. Load the given dataset into snowflake with a primary key to Order Date column.----
+
+Create or replace table PP_SALES_DATA_FINAL
+(
+  order_id	varchar(20),
+  order_date string primary key ,	
+  ship_date	string,
+  ship_mode	varchar(50),
+  customer_name	varchar(50),
+  segment	varchar(20),
+  state	varchar(50),
+  country varchar(50),
+  market  varchar(20),
+  region  varchar(20),	
+  product_id varchar(50),
+  category	varchar(20),
+  sub_category	varchar(20),
+  product_name	varchar(150),
+  sales	number(10,2),
+  quantity	number(5),
+  discount	number(10,5),
+  profit	number(10,5),
+  shipping_cost	number(10,5),
+  order_priority varchar(20),
+  year number(4) 
+);
+
+select * from PP_SALES_DATA_FINAL;
+
+describe table PP_SALES_DATA_FINAL;
+
+
+Create or replace table PP_SALES_DATA as 
+select * from PP_SALES_DATA_FINAL;
+
+----2. Change the Primary key to Order Id Column.----
+
+alter table PP_SALES_DATA
+add primary key (ORDER_ID);
+
+describe table PP_SALES_DATA;
+
+select * from PP_SALES_DATA;
+
+-------------------------------------
+
+--- 3. Check the data type for Order date and Ship date and mention in what data type it should be?  ----
+
+update PP_SALES_DATA
+set  ORDER_DATE=to_date(ORDER_DATE,'DD-MM-YYYY'),
+     SHIP_DATE=to_date(SHIP_DATE,'DD-MM-YYYY');
+
+select * from PP_SALES_DATA;
+
+
+----4. Create a new column called order_extract and extract the number after the last ‘–‘from Order ID column ----
+
+
+alter table PP_SALES_DATA
+
+add column order_extract number (10);
+
+update PP_SALES_DATA
+set  order_extract=split_part(order_id,'-',-1);
+
+select * from PP_SALES_DATA;
+
+
+---- 5. Create a new column called Discount Flag and categorize it based on discount. Use ‘Yes’ if the discount is greater than zero else ‘No’.----
+
+alter table PP_SALES_DATA
+add column Discount_Flag varchar(10);
+
+update PP_SALES_DATA
+
+set Discount_Flag = case 
+                when discount > 0 then 'Yes'
+                else 'No'
+           end;
+
+select * from PP_SALES_DATA;   
+
+
+----- 6. Create a new column called process days and calculate how many days it takes for each order id to process from the order to its shipment.---------
+
+alter table PP_SALES_DATA
+add column  process_days number(3);
+
+update PP_SALES_DATA
+set  process_days = datediff('day',ORDER_DATE,SHIP_DATE);
+
+select * from PP_SALES_DATA;   
+
+-----7. Create a new column called Rating and then based on the Process dates give rating like given below.
+----  a. If process days less than or equal to 3days then rating should be 5
+----  b. If process days are greater than 3 and less than or equal to 6 then rating should be 4
+----  c. If process days are greater than 6 and less than or equal to 10 then rating should be 3
+---   d. If process days are greater than 10 then the rating should be 2.
+
+alter table PP_SALES_DATA
+add column Rating number(3);
+
+update PP_SALES_DATA
+set Rating = case
+                  when process_days between 0 and 3 then 5
+                  when process_days between 4 and 6 then 4
+                  when process_days between 7 and 10 then 3
+                  else 2
+             end;
+                   
+select * from PP_SALES_DATA;   
+ 
+---------------------
+                         
